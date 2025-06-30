@@ -62,9 +62,11 @@ let config_dir = dirs::config_dir()
 - `timeout_seconds`: API connection timeout (default 10 seconds)
 - `retry_attempts`: Number of retry attempts (default 3)
 
-## 2. Error Handling Strategy (Under Review)
+## 2. Error Handling Strategy
 
-### Network Error Handling (Proposal)
+### Network Error Handling
+
+**Decision**: Adopted with standard retry pattern
 
 ```rust
 // Retry up to 3 times with 1-second intervals
@@ -72,7 +74,7 @@ const MAX_RETRIES: usize = 3;
 const RETRY_DELAY: Duration = Duration::from_secs(1);
 ```
 
-**Error Patterns and Responses (Proposal):**
+**Error Patterns and Responses:**
 
 #### Connection Error
 
@@ -89,31 +91,35 @@ const RETRY_DELAY: Duration = Duration::from_secs(1);
 - **Cause**: Invalid application key
 - **Response**: Execute re-authentication process
 
-### Scene-Related Errors (Proposal)
+### Scene-Related Errors
+
+**Decision**: Manual recovery with retry for execution failures
 
 #### Scene Not Found
 
 - **Cause**: Invalid scene ID in configuration file
-- **Response**: Suggest running `--setup`
+- **Response**: Display error message and suggest running `--setup`
 
 #### Scene Execution Failure
 
 - **Cause**: API error
-- **Response**: Display error message and exit
+- **Response**: Retry up to 3 times, then display error message and exit
 
-### Configuration File Errors (Proposal)
+### Configuration File Errors
+
+**Decision**: Explicit user action required for all configuration issues
 
 #### File Not Found
 
-- **Response**: Automatically start initial setup
+- **Response**: Display message "Configuration not found. Run `huestatus --setup` to configure."
 
 #### Invalid JSON
 
-- **Response**: Display error → Create backup → Reconfigure
+- **Response**: Display error "Configuration file corrupted. Run `huestatus --setup` to reconfigure."
 
 #### Version Mismatch
 
-- **Response**: Execute migration
+- **Response**: Display error "Configuration version incompatible. Run `huestatus --setup` to update."
 
 ## Undecided Items
 
