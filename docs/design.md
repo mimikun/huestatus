@@ -1,5 +1,20 @@
 # huestatus Design Specification
 
+## Progress Checklist
+
+### Core Design Sections
+- [x] 1. Configuration File Location and Format
+- [x] 2. Error Handling Strategy
+- [ ] 3. Bridge Discovery and API Discovery
+- [ ] 4. Initial Setup Flow
+- [ ] 5. CLI Arguments and Command Structure
+- [ ] 6. Project Structure and Module Design
+
+### Remaining Decisions
+- [ ] Should retry count/interval be configurable?
+- [ ] Is detailed log output necessary?
+- [ ] Should configuration file permissions (600 recommended) be set automatically?
+
 ## 1. Configuration File Location and Format
 
 ### Configuration File Location
