@@ -4,13 +4,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working across 
 
 ## 📋 Overview
 
-This is my global Claude Code configuration directory (`~/.claude`) that sets up:
+This is the project-specific Claude Code configuration that extends the global configuration (`~/.claude`) and provides:
 
-- Professional development standards and workflows
+- Project-specific development standards and workflows
 - Language-specific best practices (Rust, Go, TypeScript, Python, Bash)
 - Permission rules for tool usage
 - Environment variables for development
 - Session history and todo management
+
+## 🌐 Language Usage (Project-Specific)
+
+### Communication Policy
+- **User Interaction**: Japanese (日本語) - following global configuration
+- **Code Documentation**: English - all functions, methods, and complex logic
+- **Comments**: English - inline explanations and business logic
+- **Commit Messages**: English - following Conventional Commits standard
+- **Project Documentation**: English - README, API docs, architecture docs
 
 ## 🧠 Proactive AI Assistance
 
