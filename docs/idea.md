@@ -48,11 +48,11 @@ huestatus --version        # バージョン表示
 
 ## API仕様
 
-- **Hue API v2**使用
-- **シーン一覧取得**: `GET /clip/v2/resource/scene`
-- **シーン実行**: `PUT /clip/v2/resource/scene/{scene_id}` + `{"recall": {"action": "active"}}`
-- **シーン作成**: `POST /clip/v2/resource/scene` (B選択時)
-- 認証: `hue-application-key`ヘッダー
+- **Hue API v1**使用
+- **シーン一覧取得**: `GET /api/{username}/scenes`
+- **シーン実行**: `PUT /api/{username}/scenes/{scene_id}/recall`
+- **シーン作成**: `POST /api/{username}/scenes` (B選択時)
+- 認証: URLパスに`username`（アプリケーションキー）を含める
 
 ## 依存クレート
 
