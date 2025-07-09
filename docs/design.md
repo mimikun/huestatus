@@ -9,11 +9,16 @@
 - [x] 4. Initial Setup Flow
 - [x] 5. CLI Arguments and Command Structure
 - [x] 6. Project Structure and Module Design
+- [x] 7. Configuration Decisions and Technical Specifications
 
-### Remaining Decisions
-- [ ] Should retry count/interval be configurable?
-- [ ] Is detailed log output necessary?
-- [ ] Should configuration file permissions (600 recommended) be set automatically?
+### Design Decisions
+- [x] Retry count/interval configurable (via config file and CLI flags)
+- [x] Logging strategy defined (default quiet, --verbose for details)
+- [x] File permissions automatically set to 600 on Unix systems
+- [x] Environment variable support for CI/CD integration
+- [x] Advanced scene management and diagnostics
+- [x] Cross-platform support with platform-specific optimizations
+- [x] Performance optimization with connection pooling and caching
 
 ## 1. Configuration File Location and Format
 
@@ -710,9 +715,294 @@ pub enum HueStatusError {
 - **Error Recovery**: Fast failure and retry logic
 - **Resource Usage**: Minimal memory footprint for CLI tool
 
-## Undecided Items
+## 7. Configuration Decisions and Technical Specifications
 
-- Should retry count/interval be configurable?
-- Is detailed log output necessary?
-- Should configuration file permissions (600 recommended) be set automatically?
+### 7.1 Retry Configuration
+
+**Decision**: Make retry count and interval configurable
+
+**Rationale**:
+- Different network environments require different retry settings
+- Corporate networks may need longer timeouts
+- Maintain defaults while allowing customization
+
+**Implementation**:
+- Configuration file: `retry_attempts` and `retry_delay_seconds` fields
+- Command line override: `--retry-attempts` and `--retry-delay` flags
+- Default values: 3 attempts, 1 second delay
+
+**Updated Configuration Schema**:
+```json
+{
+  "settings": {
+    "timeout_seconds": 10,
+    "retry_attempts": 3,
+    "retry_delay_seconds": 1
+  }
+}
+```
+
+### 7.2 Logging and Output Configuration
+
+**Decision**: Basic logging by default, detailed logging with `--verbose` flag
+
+**Rationale**:
+- CLI tools should be quiet by default
+- Detailed information needed for troubleshooting
+- CI/CD environments prefer minimal output
+
+**Implementation**:
+- Default: Error messages and minimal necessary output
+- `--verbose` flag: HTTP requests/responses, retry status, detailed timing
+- `--quiet` flag: No output on success (errors only)
+
+**Output Examples**:
+```bash
+# Default mode
+$ huestatus success
+# (no output on success)
+
+# Verbose mode
+$ huestatus --verbose success
+🔍 Connecting to bridge at 192.168.1.100...
+📡 PUT /api/username/groups/0/action
+✅ Scene executed successfully (response time: 145ms)
+
+# Quiet mode
+$ huestatus --quiet success
+# (absolutely no output unless error)
+```
+
+### 7.3 Security and File Permissions
+
+**Decision**: Automatically set configuration file permissions to 600
+
+**Rationale**:
+- Application key is sensitive information
+- Users may forget to set secure permissions manually
+- Automatic security best practice enforcement
+
+**Implementation**:
+- Unix systems (Linux/macOS): Set 600 permissions automatically
+- Windows: Skip permission setting due to different filesystem model
+- Permission setting failure: Display warning but continue
+
+**Security Implementation**:
+```rust
+#[cfg(unix)]
+fn set_secure_permissions(path: &Path) -> Result<(), std::io::Error> {
+    use std::os::unix::fs::PermissionsExt;
+    let permissions = std::fs::Permissions::from_mode(0o600);
+    std::fs::set_permissions(path, permissions)
+}
+```
+
+### 7.4 Extended CLI Arguments
+
+**Decision**: Add comprehensive CLI options for production use
+
+**Additional Arguments**:
+
+#### Retry Configuration
+```bash
+huestatus --retry-attempts 5 --retry-delay 2 success
+# Override retry settings temporarily
+```
+
+#### Logging Options
+```bash
+huestatus --verbose success     # Detailed output
+huestatus --quiet success       # No output on success
+huestatus --log-level debug     # Debug logging
+```
+
+#### Configuration Management
+```bash
+huestatus --config /path/to/config.json success
+huestatus --setup --config-dir /custom/path
+```
+
+#### Network Configuration
+```bash
+huestatus --timeout 15 success           # Override timeout
+huestatus --bridge-ip 192.168.1.100     # Skip discovery
+```
+
+### 7.5 Advanced Scene Management
+
+**Decision**: Support scene validation and refresh
+
+**Additional Commands**:
+```bash
+huestatus --validate              # Test current configuration
+huestatus --refresh-scenes        # Recreate scenes if needed
+huestatus --list-scenes          # Show available scenes
+```
+
+### 7.6 Environment Variable Support
+
+**Decision**: Support environment variables for CI/CD integration
+
+**Environment Variables**:
+- `HUESTATUS_CONFIG`: Configuration file path
+- `HUESTATUS_BRIDGE_IP`: Bridge IP address
+- `HUESTATUS_TIMEOUT`: API timeout in seconds
+- `HUESTATUS_VERBOSE`: Enable verbose output
+- `HUESTATUS_QUIET`: Enable quiet mode
+
+**Usage Example**:
+```bash
+# CI/CD environment
+export HUESTATUS_CONFIG=/app/config/hue.json
+export HUESTATUS_QUIET=1
+huestatus success
+```
+
+### 7.7 Configuration Migration Strategy
+
+**Decision**: Implement version-aware configuration migration
+
+**Migration Implementation**:
+- Check `version` field in configuration file
+- Automatic migration for minor version changes
+- Prompt user for major version changes
+- Backup old configuration before migration
+
+**Version Compatibility**:
+```rust
+pub enum ConfigVersion {
+    V1_0,  // Initial version
+    V1_1,  // Added retry settings
+    V1_2,  // Added logging preferences
+}
+```
+
+### 7.8 Error Recovery and Diagnostics
+
+**Decision**: Implement comprehensive diagnostic tools
+
+**Diagnostic Commands**:
+```bash
+huestatus --doctor                # Run full system diagnostics
+huestatus --test-connection       # Test bridge connectivity
+huestatus --check-scenes         # Validate scene configuration
+```
+
+**Diagnostic Output**:
+```text
+🔍 huestatus System Diagnostics
+
+Network Connectivity:
+✅ Internet connection available
+✅ Bridge reachable at 192.168.1.100
+✅ Bridge API responding (v1.54.0)
+
+Authentication:
+✅ Application key valid
+✅ Bridge authorization confirmed
+
+Scene Configuration:
+✅ Success scene exists (ID: abc123)
+✅ Failure scene exists (ID: def456)
+✅ All lights responsive
+
+Configuration:
+✅ Config file valid (/home/user/.config/huestatus/config.json)
+✅ File permissions secure (600)
+✅ All required fields present
+
+🎉 All systems operational
+```
+
+### 7.9 Performance Optimization
+
+**Decision**: Implement connection pooling and async operations
+
+**Performance Features**:
+- HTTP connection reuse across API calls
+- Async scene execution for better responsiveness
+- Local scene caching to reduce API calls
+- Bridge capability caching
+
+**Implementation Details**:
+```rust
+// Connection pool configuration
+pub struct BridgeClient {
+    client: reqwest::Client,
+    base_url: String,
+    username: String,
+    scene_cache: Arc<Mutex<HashMap<String, Scene>>>,
+}
+```
+
+### 7.10 Cross-Platform Considerations
+
+**Decision**: Full cross-platform support with platform-specific optimizations
+
+**Platform Support**:
+- **Linux**: Full feature support, systemd integration
+- **macOS**: Full feature support, launchd integration
+- **Windows**: Full feature support, Windows Service integration
+- **FreeBSD/OpenBSD**: Basic support
+
+**Platform-Specific Features**:
+```rust
+#[cfg(target_os = "linux")]
+mod linux_specific {
+    // systemd integration
+    pub fn install_systemd_service() -> Result<(), Error> { ... }
+}
+
+#[cfg(target_os = "macos")]
+mod macos_specific {
+    // launchd integration
+    pub fn install_launchd_service() -> Result<(), Error> { ... }
+}
+```
+
+## Configuration Schema Final Version
+
+```json
+{
+  "version": "1.2",
+  "bridge": {
+    "ip": "192.168.1.100",
+    "application_key": "xxxx-xxxx-xxxx-xxxx",
+    "last_verified": "2024-01-01T00:00:00Z",
+    "capabilities_cache": {
+      "max_scenes": 200,
+      "lights_count": 10,
+      "cached_at": "2024-01-01T00:00:00Z"
+    }
+  },
+  "scenes": {
+    "success": {
+      "id": "12345678-1234-1234-1234-success-scene",
+      "name": "huestatus-success",
+      "auto_created": true,
+      "last_validated": "2024-01-01T00:00:00Z"
+    },
+    "failure": {
+      "id": "12345678-1234-1234-1234-failure-scene",
+      "name": "huestatus-failure",
+      "auto_created": true,
+      "last_validated": "2024-01-01T00:00:00Z"
+    }
+  },
+  "settings": {
+    "timeout_seconds": 10,
+    "retry_attempts": 3,
+    "retry_delay_seconds": 1,
+    "verbose_logging": false,
+    "quiet_mode": false,
+    "auto_refresh_scenes": true,
+    "validate_scenes_on_startup": false
+  },
+  "advanced": {
+    "connection_pool_size": 5,
+    "cache_duration_minutes": 30,
+    "scene_validation_interval_hours": 24
+  }
+}
+```
 
