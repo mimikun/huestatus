@@ -3,6 +3,7 @@
 ## Progress Checklist
 
 ### Core Design Sections
+
 - [x] 1. Configuration File Location and Format
 - [x] 2. Error Handling Strategy
 - [x] 3. Bridge Discovery and API Discovery
@@ -12,6 +13,7 @@
 - [x] 7. Configuration Decisions and Technical Specifications
 
 ### Design Decisions
+
 - [x] Retry count/interval configurable (via config file and CLI flags)
 - [x] Logging strategy defined (default quiet, --verbose for details)
 - [x] File permissions automatically set to 600 on Unix systems
@@ -148,13 +150,16 @@ const RETRY_DELAY: Duration = Duration::from_secs(1);
 **Decision**: Implement multiple discovery methods with fallback priority
 
 **Priority Order:**
+
 1. **Philips Discovery Service** (Primary method - most reliable)
+
    - Endpoint: `https://discovery.meethue.com/`
    - Returns JSON with bridge IP addresses on local network
    - Advantage: Reliable, actively maintained by Philips
    - Disadvantage: Requires internet access
 
 2. **mDNS Discovery** (Secondary method - unreliable in practice)
+
    - Service type: `_hue._tcp.local`
    - Note: Official Hue app doesn't use mDNS consistently
    - Advantage: Local network discovery, no external dependency
@@ -169,6 +174,7 @@ const RETRY_DELAY: Duration = Duration::from_secs(1);
 **Decision**: Physical button press with 30-second timeout
 
 **Authentication Flow:**
+
 1. **Initial Request**: `POST /api` with devicetype
 2. **Button Press Requirement**: User presses physical link button on bridge
 3. **Timeout Window**: 30 seconds from button press to API call
@@ -176,6 +182,7 @@ const RETRY_DELAY: Duration = Duration::from_secs(1);
 5. **Storage**: Save username for all future API calls
 
 **Request Format:**
+
 ```json
 POST /api
 {
@@ -184,11 +191,13 @@ POST /api
 ```
 
 **Success Response:**
+
 ```json
-[{"success": {"username": "83b7780291a6ceffbe0bd049104df"}}]
+[{ "success": { "username": "83b7780291a6ceffbe0bd049104df" } }]
 ```
 
 **Error Response (Button Not Pressed):**
+
 ```json
 {
   "error": {
@@ -204,6 +213,7 @@ POST /api
 **Decision**: Use HTTP-based API v1 with confirmed endpoints
 
 **Base URL Format:**
+
 ```
 http://<bridge_ip>/api/<username>
 ```
@@ -211,29 +221,33 @@ http://<bridge_ip>/api/<username>
 **Scene Management Endpoints:**
 
 #### Scene List Retrieval
+
 - **Method**: `GET /api/<username>/scenes`
 - **Purpose**: Get all available scenes
 - **Response**: JSON object with scene IDs and metadata
 
 #### Scene Execution (Via Groups API)
+
 - **Method**: `PUT /api/<username>/groups/0/action`
 - **Purpose**: Execute scene on all lights (group 0 = all lights)
 - **Request Body**: `{"scene": "<scene_id>"}`
 - **Note**: Scene execution is done via Groups API, not Scenes API directly
 
 #### Scene Creation
+
 - **Method**: `POST /api/<username>/scenes`
 - **Purpose**: Create new scene with specified lights and states
-- **Request Body**: 
+- **Request Body**:
+
 ```json
 {
   "name": "Scene Name",
   "lights": ["1", "2", "3"],
   "recycle": true,
   "lightstates": {
-    "1": {"on": true, "bri": 254, "hue": 21845, "sat": 254},
-    "2": {"on": true, "bri": 254, "hue": 21845, "sat": 254},
-    "3": {"on": true, "bri": 254, "hue": 21845, "sat": 254}
+    "1": { "on": true, "bri": 254, "hue": 21845, "sat": 254 },
+    "2": { "on": true, "bri": 254, "hue": 21845, "sat": 254 },
+    "3": { "on": true, "bri": 254, "hue": 21845, "sat": 254 }
   }
 }
 ```
@@ -243,34 +257,37 @@ http://<bridge_ip>/api/<username>
 **Decision**: Define standard success/failure patterns within API v1 constraints
 
 **Success Pattern (Green):**
+
 ```json
 {
   "name": "huestatus-success",
   "lights": ["1", "2", "3"],
   "recycle": true,
   "lightstates": {
-    "1": {"on": true, "bri": 254, "hue": 21845, "sat": 254},
-    "2": {"on": true, "bri": 254, "hue": 21845, "sat": 254},
-    "3": {"on": true, "bri": 254, "hue": 21845, "sat": 254}
+    "1": { "on": true, "bri": 254, "hue": 21845, "sat": 254 },
+    "2": { "on": true, "bri": 254, "hue": 21845, "sat": 254 },
+    "3": { "on": true, "bri": 254, "hue": 21845, "sat": 254 }
   }
 }
 ```
 
 **Failure Pattern (Red):**
+
 ```json
 {
   "name": "huestatus-failure",
   "lights": ["1", "2", "3"],
   "recycle": true,
   "lightstates": {
-    "1": {"on": true, "bri": 254, "hue": 0, "sat": 254},
-    "2": {"on": true, "bri": 254, "hue": 0, "sat": 254},
-    "3": {"on": true, "bri": 254, "hue": 0, "sat": 254}
+    "1": { "on": true, "bri": 254, "hue": 0, "sat": 254 },
+    "2": { "on": true, "bri": 254, "hue": 0, "sat": 254 },
+    "3": { "on": true, "bri": 254, "hue": 0, "sat": 254 }
   }
 }
 ```
 
 **Color Parameters (Validated from Official Documentation):**
+
 - **Hue Range**: 0-65535 (16-bit precision for 0.0055° accuracy)
   - Red: 0
   - Green: 21845 (120° × 65536/360°)
@@ -280,6 +297,7 @@ http://<bridge_ip>/api/<username>
 - **On State**: true (lights turn on)
 
 **Alternative Color Specification (XY Coordinates):**
+
 - More accurate, hardware-independent color representation
 - Example green: `"xy": [0.409, 0.518]` (within Gamut B)
 - Consider implementing XY mode for better color consistency
@@ -287,24 +305,28 @@ http://<bridge_ip>/api/<username>
 ### Technical Implementation Notes
 
 **HTTP Client Requirements:**
+
 - Protocol: HTTP (not HTTPS for API v1)
 - Timeout: 10 seconds (configurable)
 - Retry: 3 attempts with 1-second delay
 - User-Agent: `huestatus/1.0`
 
 **Error Handling Integration:**
+
 - Bridge unreachable → Try next discovery method
 - Error 101 (link button not pressed) → Display button press instructions
 - Error 1 (unauthorized user) → Re-run authentication flow
 - Scene not found → Suggest running `--setup`
 
 **Bridge Limitations (From Capabilities API):**
+
 - Maximum 200 scenes stored in bridge
 - Maximum 2048 total scene lightstates
 - Scenes marked with `recycle: true` can be auto-deleted by bridge
 - Color gamut varies by light type (A, B, C)
 
 **Capabilities Check:**
+
 - **Endpoint**: `GET /api/<username>/capabilities`
 - **Purpose**: Query bridge and light capabilities before scene creation
 - **Response**: Available lights, scenes, sensors, and supported features
@@ -318,25 +340,30 @@ http://<bridge_ip>/api/<username>
 **Setup Flow:**
 
 1. **Configuration Directory Creation**
+
    - Create `~/.config/huestatus/` directory if it doesn't exist
    - Set appropriate permissions (755 for directory, 600 for config file)
 
 2. **Bridge Discovery**
+
    - Try Philips Discovery Service first
    - Fall back to mDNS if discovery service fails
    - Allow manual IP entry if both methods fail
 
 3. **Bridge Authentication**
+
    - Prompt user to press link button on bridge
    - Poll authentication endpoint for 30 seconds
    - Save application key on success
 
 4. **Light Discovery**
+
    - Query available lights via `/api/<username>/lights`
    - Display light list to user for confirmation
    - Allow user to select subset of lights (optional)
 
 5. **Scene Creation**
+
    - Create success scene (green) with selected lights
    - Create failure scene (red) with selected lights
    - Test scene execution to verify functionality
@@ -387,6 +414,7 @@ huestatus --setup
 ### Error Recovery During Setup
 
 **Bridge Discovery Failure:**
+
 ```text
 ❌ Bridge discovery failed. Please enter bridge IP manually:
 IP Address: 192.168.1.100
@@ -395,6 +423,7 @@ IP Address: 192.168.1.100
 ```
 
 **Authentication Timeout:**
+
 ```text
 ⏰ Authentication timed out. Please try again.
 🔑 Press the link button on your Hue bridge now.
@@ -402,6 +431,7 @@ IP Address: 192.168.1.100
 ```
 
 **Scene Creation Failure:**
+
 ```text
 ❌ Failed to create scenes. Retrying...
    Attempt 2/3...
@@ -411,11 +441,13 @@ IP Address: 192.168.1.100
 ### Setup Validation
 
 **Pre-setup Checks:**
+
 - Network connectivity
 - Bridge reachability
 - Sufficient bridge scene storage (check via capabilities API)
 
 **Post-setup Validation:**
+
 - Configuration file integrity
 - Scene execution test
 - Bridge connectivity test
@@ -436,18 +468,21 @@ huestatus --setup --force
 **Decision**: Simple, intuitive command structure with minimal arguments
 
 #### Success Status
+
 ```bash
 huestatus success
 # Activates green scene to indicate success
 ```
 
 #### Failure Status
+
 ```bash
 huestatus failure
 # Activates red scene to indicate failure
 ```
 
 #### Setup Command
+
 ```bash
 huestatus --setup
 # Interactive setup process
@@ -456,24 +491,28 @@ huestatus --setup
 ### Optional Arguments
 
 #### Configuration File Path
+
 ```bash
 huestatus --config /path/to/config.json success
 # Use custom configuration file location
 ```
 
 #### Verbose Output
+
 ```bash
 huestatus --verbose success
 # Display detailed operation information
 ```
 
 #### Force Reconfiguration
+
 ```bash
 huestatus --setup --force
 # Overwrite existing configuration
 ```
 
 #### Timeout Override
+
 ```bash
 huestatus --timeout 5 success
 # Override default timeout (in seconds)
@@ -489,11 +528,13 @@ huestatus --version
 ### Command Structure Design
 
 **Argument Parsing Priority:**
+
 1. Global flags (--config, --verbose, --timeout)
 2. Command (success, failure, --setup)
 3. Command-specific flags (--force for setup)
 
 **Error Handling:**
+
 - Invalid command: Display help and exit with code 1
 - Missing configuration: Suggest running `--setup`
 - Network errors: Display error message and exit with code 2
@@ -501,6 +542,7 @@ huestatus --version
 ### Shell Integration Examples
 
 **CI/CD Integration:**
+
 ```bash
 # GitHub Actions example
 - name: Run tests
@@ -513,6 +555,7 @@ huestatus --version
 ```
 
 **Build Script Integration:**
+
 ```bash
 #!/bin/bash
 set -e
@@ -583,36 +626,42 @@ huestatus/
 ### Module Responsibilities
 
 #### `main.rs`
+
 - CLI argument parsing using `clap`
 - Command routing to appropriate modules
 - Error handling and user feedback
 - Exit code management
 
 #### `config/` Module
+
 - Configuration file location resolution
 - JSON serialization/deserialization
 - Configuration validation
 - Migration between config versions
 
 #### `bridge/` Module
+
 - Bridge discovery (Philips service, mDNS, manual)
 - HTTP client with retry logic
 - Authentication flow management
 - API error handling
 
 #### `scenes/` Module
+
 - Scene creation with light discovery
 - Scene execution via Groups API
 - Color calculation and validation
 - Scene validation and testing
 
 #### `setup/` Module
+
 - Interactive setup flow
 - User input handling
 - Setup validation and error recovery
 - Configuration file creation
 
 #### `error.rs`
+
 - Custom error types using `thiserror`
 - Error context and chaining
 - User-friendly error messages
@@ -662,22 +711,22 @@ use thiserror::Error;
 pub enum HueStatusError {
     #[error("Configuration file not found. Run 'huestatus --setup' to configure.")]
     ConfigNotFound,
-    
+
     #[error("Invalid configuration: {reason}")]
     InvalidConfig { reason: String },
-    
+
     #[error("Bridge not found. Check network connection and try again.")]
     BridgeNotFound,
-    
+
     #[error("Authentication failed. Run 'huestatus --setup' to re-authenticate.")]
     AuthenticationFailed,
-    
+
     #[error("Scene '{scene_name}' not found. Run 'huestatus --setup' to recreate scenes.")]
     SceneNotFound { scene_name: String },
-    
+
     #[error("Network error: {source}")]
     NetworkError { #[from] source: reqwest::Error },
-    
+
     #[error("API error: {message}")]
     ApiError { message: String },
 }
@@ -688,18 +737,21 @@ pub enum HueStatusError {
 **Decision**: Comprehensive testing with mocking
 
 #### Unit Tests
+
 - Bridge discovery logic
 - Scene creation and execution
 - Configuration validation
 - Error handling paths
 
 #### Integration Tests
+
 - CLI argument parsing
 - End-to-end setup flow
 - Configuration file handling
 - API client behavior
 
 #### Mock Testing
+
 - HTTP responses for bridge API
 - Network failure scenarios
 - Authentication timeouts
@@ -722,16 +774,19 @@ pub enum HueStatusError {
 **Decision**: Make retry count and interval configurable
 
 **Rationale**:
+
 - Different network environments require different retry settings
 - Corporate networks may need longer timeouts
 - Maintain defaults while allowing customization
 
 **Implementation**:
+
 - Configuration file: `retry_attempts` and `retry_delay_seconds` fields
 - Command line override: `--retry-attempts` and `--retry-delay` flags
 - Default values: 3 attempts, 1 second delay
 
 **Updated Configuration Schema**:
+
 ```json
 {
   "settings": {
@@ -747,16 +802,19 @@ pub enum HueStatusError {
 **Decision**: Basic logging by default, detailed logging with `--verbose` flag
 
 **Rationale**:
+
 - CLI tools should be quiet by default
 - Detailed information needed for troubleshooting
 - CI/CD environments prefer minimal output
 
 **Implementation**:
+
 - Default: Error messages and minimal necessary output
 - `--verbose` flag: HTTP requests/responses, retry status, detailed timing
 - `--quiet` flag: No output on success (errors only)
 
 **Output Examples**:
+
 ```bash
 # Default mode
 $ huestatus success
@@ -778,16 +836,19 @@ $ huestatus --quiet success
 **Decision**: Automatically set configuration file permissions to 600
 
 **Rationale**:
+
 - Application key is sensitive information
 - Users may forget to set secure permissions manually
 - Automatic security best practice enforcement
 
 **Implementation**:
+
 - Unix systems (Linux/macOS): Set 600 permissions automatically
 - Windows: Skip permission setting due to different filesystem model
 - Permission setting failure: Display warning but continue
 
 **Security Implementation**:
+
 ```rust
 #[cfg(unix)]
 fn set_secure_permissions(path: &Path) -> Result<(), std::io::Error> {
@@ -804,12 +865,14 @@ fn set_secure_permissions(path: &Path) -> Result<(), std::io::Error> {
 **Additional Arguments**:
 
 #### Retry Configuration
+
 ```bash
 huestatus --retry-attempts 5 --retry-delay 2 success
 # Override retry settings temporarily
 ```
 
 #### Logging Options
+
 ```bash
 huestatus --verbose success     # Detailed output
 huestatus --quiet success       # No output on success
@@ -817,12 +880,14 @@ huestatus --log-level debug     # Debug logging
 ```
 
 #### Configuration Management
+
 ```bash
 huestatus --config /path/to/config.json success
 huestatus --setup --config-dir /custom/path
 ```
 
 #### Network Configuration
+
 ```bash
 huestatus --timeout 15 success           # Override timeout
 huestatus --bridge-ip 192.168.1.100     # Skip discovery
@@ -833,6 +898,7 @@ huestatus --bridge-ip 192.168.1.100     # Skip discovery
 **Decision**: Support scene validation and refresh
 
 **Additional Commands**:
+
 ```bash
 huestatus --validate              # Test current configuration
 huestatus --refresh-scenes        # Recreate scenes if needed
@@ -844,6 +910,7 @@ huestatus --list-scenes          # Show available scenes
 **Decision**: Support environment variables for CI/CD integration
 
 **Environment Variables**:
+
 - `HUESTATUS_CONFIG`: Configuration file path
 - `HUESTATUS_BRIDGE_IP`: Bridge IP address
 - `HUESTATUS_TIMEOUT`: API timeout in seconds
@@ -851,6 +918,7 @@ huestatus --list-scenes          # Show available scenes
 - `HUESTATUS_QUIET`: Enable quiet mode
 
 **Usage Example**:
+
 ```bash
 # CI/CD environment
 export HUESTATUS_CONFIG=/app/config/hue.json
@@ -863,12 +931,14 @@ huestatus success
 **Decision**: Implement version-aware configuration migration
 
 **Migration Implementation**:
+
 - Check `version` field in configuration file
 - Automatic migration for minor version changes
 - Prompt user for major version changes
 - Backup old configuration before migration
 
 **Version Compatibility**:
+
 ```rust
 pub enum ConfigVersion {
     V1_0,  // Initial version
@@ -882,6 +952,7 @@ pub enum ConfigVersion {
 **Decision**: Implement comprehensive diagnostic tools
 
 **Diagnostic Commands**:
+
 ```bash
 huestatus --doctor                # Run full system diagnostics
 huestatus --test-connection       # Test bridge connectivity
@@ -889,6 +960,7 @@ huestatus --check-scenes         # Validate scene configuration
 ```
 
 **Diagnostic Output**:
+
 ```text
 🔍 huestatus System Diagnostics
 
@@ -919,12 +991,14 @@ Configuration:
 **Decision**: Implement connection pooling and async operations
 
 **Performance Features**:
+
 - HTTP connection reuse across API calls
 - Async scene execution for better responsiveness
 - Local scene caching to reduce API calls
 - Bridge capability caching
 
 **Implementation Details**:
+
 ```rust
 // Connection pool configuration
 pub struct BridgeClient {
@@ -940,12 +1014,14 @@ pub struct BridgeClient {
 **Decision**: Full cross-platform support with platform-specific optimizations
 
 **Platform Support**:
+
 - **Linux**: Full feature support, systemd integration
 - **macOS**: Full feature support, launchd integration
 - **Windows**: Full feature support, Windows Service integration
 - **FreeBSD/OpenBSD**: Basic support
 
 **Platform-Specific Features**:
+
 ```rust
 #[cfg(target_os = "linux")]
 mod linux_specific {
