@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "container-use": {
+      "type": "stdio",
+      "command": "container-use",
+      "args": [
+        "stdio"
+      ],
+      "env": {}
+    }
+  }
+}
+
