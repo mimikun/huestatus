@@ -33,7 +33,7 @@
   - 期待値: `[{"error":{"type":101,"address":"","description":"link button not pressed"}}]`
   - 結果: ✅ 期待通りのエラー101が返された
 
-- [ ] リアルタイム認証テスト（ボタン動作確認）
+- [x] **完了**: リアルタイム認証テスト（ボタン動作確認）
   ```bash
   echo "=== ボタンを押す前のテスト ==="
   curl -X POST -d '{"devicetype":"test"}' http://192.168.1.146/api
@@ -48,6 +48,25 @@
   sleep 10
   curl -X POST -d '{"devicetype":"test"}' http://192.168.1.146/api
   ```
+  
+  **テスト結果（2025-07-15）**:
+  ```
+  === ボタンを押す前のテスト ===
+  [{"error":{"type":101,"address":"","description":"link button not pressed"}}]
+  === 今すぐブリッジのボタンを1-2秒押してください ===
+  （ボタンを押したらEnterを押してください）
+  
+  === ボタンを押した直後のテスト ===
+  [{"success":{"username":"qf5lBV09NdJM-g1V6Ozczj4NDiWxTnjB6v86-8y5"}}]
+  === 10秒後のテスト ===
+  [{"error":{"type":101,"address":"","description":"link button not pressed"}}]
+  ```
+  
+  **重要な発見**:
+  - ✅ 認証処理は正常に動作
+  - ⚠️ 認証ウィンドウは約10秒以内と非常に短い
+  - ⚠️ タイミングがシビアなためCLI実装時は注意が必要
+  - 💡 実装時の考慮点: ユーザーへの明確な指示、適切なエラーハンドリング、タイムアウト対応
 
 ## 物理的な確認
 
