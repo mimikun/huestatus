@@ -237,9 +237,11 @@ impl SetupProcess {
 
     /// Update progress display
     fn update_progress(&self, status: &SetupStatus) {
-        let progress = status.completed_steps as f32 / status.total_steps as f32 * 100.0;
-        let progress_bar = "█".repeat((progress / 5.0) as usize);
-        let empty_bar = "░".repeat(20 - progress_bar.len());
+        let progress =
+            (status.completed_steps as f32 / status.total_steps as f32 * 100.0).min(100.0);
+        let progress_bar_len = ((progress / 5.0) as usize).min(20);
+        let progress_bar = "█".repeat(progress_bar_len);
+        let empty_bar = "░".repeat(20 - progress_bar_len);
 
         println!(
             "{} Step {}/{}: {}",
@@ -702,5 +704,54 @@ mod tests {
         assert_eq!(status.current_step, SetupStep::DiscoverBridge);
         assert_eq!(status.completed_steps, 1);
         assert!(status.error.is_none());
+    }
+
+    #[test]
+    fn test_update_progress_overflow_prevention() {
+        let process = SetupProcess::new();
+
+        // Test case 1: Normal progress (should work fine)
+        let normal_status = SetupStatus {
+            current_step: SetupStep::DiscoverBridge,
+            total_steps: 7,
+            completed_steps: 3,
+            message: "Normal progress".to_string(),
+            error: None,
+        };
+        // This should not panic
+        process.update_progress(&normal_status);
+
+        // Test case 2: Completed steps exceed total steps (overflow case)
+        let overflow_status = SetupStatus {
+            current_step: SetupStep::Complete,
+            total_steps: 7,
+            completed_steps: 10, // More than total_steps
+            message: "Overflow case".to_string(),
+            error: None,
+        };
+        // This should not panic due to our fix
+        process.update_progress(&overflow_status);
+
+        // Test case 3: Edge case with zero total steps
+        let zero_total_status = SetupStatus {
+            current_step: SetupStep::Initialize,
+            total_steps: 1,
+            completed_steps: 0,
+            message: "Zero progress".to_string(),
+            error: None,
+        };
+        // This should not panic
+        process.update_progress(&zero_total_status);
+
+        // Test case 4: Maximum possible progress
+        let max_status = SetupStatus {
+            current_step: SetupStep::Complete,
+            total_steps: 7,
+            completed_steps: 7,
+            message: "Complete".to_string(),
+            error: None,
+        };
+        // This should not panic and should cap at 100%
+        process.update_progress(&max_status);
     }
 }
