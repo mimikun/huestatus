@@ -454,7 +454,7 @@ impl SceneCreator {
 
             let mut state = base_color.to_light_state();
             state.bri = Some(brightness);
-            state.effect = Some("colorloop".to_string()); // This would need bridge support
+            state.effect = None; // Remove unsupported effect to prevent API errors
 
             scene_builder = scene_builder.with_light_state(light_id.clone(), state);
         }
