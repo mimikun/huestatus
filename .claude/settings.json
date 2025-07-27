@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__container-use__environment_run_cmd",
+      "mcp__container-use__environment_file_read"
+    ],
+    "deny": [
+      "Read(docs/other/**)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "container-use"
+  ]
+}
