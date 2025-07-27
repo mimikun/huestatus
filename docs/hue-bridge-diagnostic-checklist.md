@@ -4,11 +4,12 @@
 
 ## 基本情報確認
 
-- [ ] ブリッジのモデル確認
+- [x] **完了**: ブリッジのモデル確認
   ```bash
   curl -s http://192.168.1.146/api/0/config | jq '{modelid, bridgeid, swversion}'
   ```
   - 期待値: `modelid: "BSB002"`
+  - 結果: ✅ `modelid: "BSB002"`, `bridgeid: "ECB5FAFFFEBCA972"`, `swversion: "1972004020"`
 
 ## ネットワーク診断
 
@@ -103,24 +104,27 @@
 
 ## 高度な診断
 
-- [ ] ブリッジのUPnP情報確認
+- [x] **完了**: ブリッジのUPnP情報確認
   ```bash
   curl -s http://192.168.1.146/description.xml | grep -E "(modelName|modelNumber|serialNumber)"
   ```
+  - 結果: ✅ `Philips hue bridge 2015`, `BSB002`, `ecb5fabca972`
 
-- [ ] 既存認証の確認（もしある場合）
+- [x] **完了**: 既存認証の確認（もしある場合）
   ```bash
   ls -la ~/.config/huestatus/
   cat ~/.config/huestatus/config.json
   ```
+  - 結果: ✅ 設定ディレクトリは存在、設定ファイルは未作成
 
 ## WSL環境特有の確認
 
-- [ ] WSLネットワーク設定確認
+- [x] **完了**: WSLネットワーク設定確認
   ```bash
   cat /etc/resolv.conf
   ip route show
   ```
+  - 結果: ✅ DNS設定正常、ルーティング正常（192.168.1.137/24でブリッジとペア）
 
 - [ ] WSLとWindows間での動作比較
   - [ ] WindowsのPowerShellで同じcurlコマンドを実行
@@ -147,23 +151,42 @@
 
 問題が解決しない場合、以下の情報を収集：
 
-- [ ] ブリッジ情報
+- [x] **完了**: ブリッジ情報
   ```bash
   curl -s http://192.168.1.146/api/0/config | jq '{modelid, bridgeid, swversion, apiversion}'
   ```
+  - 結果: ✅ BSB002, API version 1.72.0, SW version 1972004020
 
-- [ ] 環境情報
+- [x] **完了**: 環境情報
   ```bash
   uname -a
   cat /etc/os-release
   ```
+  - 結果: ✅ WSL2 Ubuntu (Linux 6.6.87.2-microsoft-standard-WSL2)
 
-- [ ] ネットワーク情報
+- [x] **完了**: ネットワーク情報
   ```bash
   ip addr show
   ip route show
   ```
+  - 結果: ✅ IP: 192.168.1.137/24, デフォルトルート: 192.168.1.1
 
 ---
 
-**現在の状況**: ネットワーク接続は正常、次は認証APIテストを実行中
+**現在の状況**: システム診断完了（自動テスト項目）
+
+## 📋 診断結果サマリー
+
+### ✅ 完了項目（自動テスト）
+- **ネットワーク診断**: ping/HTTP接続テスト ✅
+- **認証API診断**: API動作確認（認証ウィンドウ約10秒） ✅  
+- **基本情報**: BSB002, API 1.72.0, SW 1972004020 ✅
+- **UPnP情報**: Philips hue bridge 2015 ✅
+- **認証設定**: 設定ディレクトリ存在、ファイル未作成 ✅
+- **WSL環境**: ネットワーク設定正常 ✅
+
+### ⏳ 残作業（手動確認）
+以下3項目は物理的な確認が必要：
+1. **ブリッジの電源LED確認**（青色点灯の確認）
+2. **ボタンの位置確認**（BSB002の上面丸いボタン）  
+3. **ボタン押下時のLED動作確認**（青→緑/赤の変化）
