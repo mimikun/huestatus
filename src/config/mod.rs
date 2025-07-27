@@ -1,12 +1,18 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 pub mod file;
 pub mod validation;
 
 pub use file::*;
 pub use validation::*;
+
+/// Maximum allowed path length to prevent capacity overflow
+const MAX_PATH_LENGTH: usize = 4096;
+
+/// Fallback configuration directory name
+const FALLBACK_CONFIG_NAME: &str = "huestatus-config";
 
 /// Configuration file version for future compatibility
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
@@ -434,6 +440,49 @@ impl Config {
     }
 }
 
+/// Validate path length to prevent capacity overflow
+pub fn validate_path_length(path: &Path) -> crate::error::Result<()> {
+    let path_str = path.to_string_lossy();
+    if path_str.len() > MAX_PATH_LENGTH {
+        let truncated_path = if path_str.len() > 100 {
+            format!("{}...{}", &path_str[..50], &path_str[path_str.len() - 47..])
+        } else {
+            path_str.to_string()
+        };
+
+        Err(crate::error::HueStatusError::PathTooLong {
+            path: truncated_path,
+        })
+    } else {
+        Ok(())
+    }
+}
+
+/// Safely convert path to string with validation
+pub fn safe_path_to_string(
+    path_result: crate::error::Result<PathBuf>,
+) -> crate::error::Result<String> {
+    match path_result {
+        Ok(path) => {
+            validate_path_length(&path)?;
+            let path_str = path.to_string_lossy();
+            Ok(path_str.into_owned())
+        }
+        Err(err) => Err(err),
+    }
+}
+
+/// Safe fallback for path to string conversion that never panics
+pub fn safe_path_to_string_fallback(path_result: crate::error::Result<PathBuf>) -> String {
+    match safe_path_to_string(path_result) {
+        Ok(path_str) => path_str,
+        Err(crate::error::HueStatusError::PathTooLong { .. }) => {
+            format!("{}-fallback", FALLBACK_CONFIG_NAME)
+        }
+        Err(_) => "unknown".to_string(),
+    }
+}
+
 // Helper trait for ergonomic method chaining
 trait Pipe<T> {
     fn pipe<U, F: FnOnce(T) -> U>(self, f: F) -> U;
@@ -526,5 +575,51 @@ mod tests {
         assert_eq!(advanced.connection_pool_size, 5);
         assert_eq!(advanced.cache_duration_minutes, 30);
         assert_eq!(advanced.scene_validation_interval_hours, 24);
+    }
+
+    #[test]
+    fn test_path_length_validation() {
+        // Test normal length path
+        let normal_path = PathBuf::from("normal/path/config.json");
+        assert!(validate_path_length(&normal_path).is_ok());
+
+        // Test extremely long path (exceed MAX_PATH_LENGTH of 4096)
+        let long_dir = "a".repeat(4200); // Longer than MAX_PATH_LENGTH
+        let long_path = PathBuf::from(format!("{}/config.json", long_dir));
+        assert!(matches!(
+            validate_path_length(&long_path),
+            Err(crate::error::HueStatusError::PathTooLong { .. })
+        ));
+    }
+
+    #[test]
+    fn test_safe_path_to_string() {
+        // Test successful conversion
+        let normal_path = PathBuf::from("normal/path/config.json");
+        let result = safe_path_to_string(Ok(normal_path));
+        assert!(result.is_ok());
+
+        // Test error propagation
+        let error_result = safe_path_to_string(Err(crate::error::HueStatusError::ConfigNotFound));
+        assert!(error_result.is_err());
+    }
+
+    #[test]
+    fn test_safe_path_to_string_fallback() {
+        // Test normal path
+        let normal_path = PathBuf::from("normal/path/config.json");
+        let result = safe_path_to_string_fallback(Ok(normal_path));
+        assert!(result.contains("normal"));
+
+        // Test fallback for error
+        let result =
+            safe_path_to_string_fallback(Err(crate::error::HueStatusError::ConfigNotFound));
+        assert_eq!(result, "unknown");
+
+        // Test fallback for path too long
+        let long_dir = "a".repeat(4200); // Longer than MAX_PATH_LENGTH
+        let long_path = PathBuf::from(format!("{}/config.json", long_dir));
+        let result = safe_path_to_string_fallback(Ok(long_path));
+        assert_eq!(result, format!("{}-fallback", FALLBACK_CONFIG_NAME));
     }
 }

@@ -95,6 +95,12 @@ pub enum HueStatusError {
 
     #[error("Environment variable error: {var_name}")]
     EnvironmentVariableError { var_name: String },
+
+    #[error("Path too long: {path}")]
+    PathTooLong { path: String },
+
+    #[error("Capacity overflow during {operation}")]
+    CapacityOverflow { operation: String },
 }
 
 impl HueStatusError {
@@ -132,7 +138,9 @@ impl HueStatusError {
             | HueStatusError::ValidationFailed { .. }
             | HueStatusError::ColorConversionError { .. }
             | HueStatusError::UnsupportedPlatform { .. }
-            | HueStatusError::EnvironmentVariableError { .. } => 6,
+            | HueStatusError::EnvironmentVariableError { .. }
+            | HueStatusError::PathTooLong { .. }
+            | HueStatusError::CapacityOverflow { .. } => 6,
         }
     }
 
@@ -199,6 +207,12 @@ impl HueStatusError {
             HueStatusError::EnvironmentVariableError { var_name } => {
                 format!("Environment variable '{}' is invalid or missing.", var_name)
             }
+            HueStatusError::PathTooLong { path } => {
+                format!("Configuration path is too long: {}. Try using a shorter path or set HUESTATUS_CONFIG_DIR environment variable.", path)
+            }
+            HueStatusError::CapacityOverflow { operation } => {
+                format!("Memory capacity overflow during {}. This may be caused by extremely long file paths in WSL environment.", operation)
+            }
             _ => self.to_string(),
         }
     }
@@ -215,6 +229,7 @@ impl HueStatusError {
                 | HueStatusError::SceneNotFound { .. }
                 | HueStatusError::NoLightsFound
                 | HueStatusError::ValidationFailed { .. }
+                | HueStatusError::PathTooLong { .. }
         )
     }
 

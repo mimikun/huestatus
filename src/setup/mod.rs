@@ -71,7 +71,6 @@ pub struct SetupStatus {
     pub error: Option<String>,
 }
 
-
 impl Default for SetupProcess {
     fn default() -> Self {
         Self::new()
@@ -207,9 +206,8 @@ impl SetupProcess {
         self.update_progress(&status);
 
         let duration = start_time.elapsed().as_millis() as u64;
-        let config_path_str = Config::get_config_file_path()
-            .map(|p| p.to_string_lossy().to_string())
-            .unwrap_or_else(|_| "unknown".to_string());
+        let config_path_str =
+            crate::config::safe_path_to_string_fallback(Config::get_config_file_path());
 
         let result = SetupResult {
             success: true,
@@ -552,9 +550,7 @@ impl SetupProcess {
                 Err(e) => println!("❌Failed to load configuration: {}", e),
             }
         } else {
-            println!(
-                "❌No configuration found. Run 'huestatus --setup' to configure."
-            );
+            println!("❌No configuration found. Run 'huestatus --setup' to configure.");
         }
 
         Ok(())
