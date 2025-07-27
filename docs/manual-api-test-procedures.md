@@ -174,14 +174,29 @@ Array[
 Object{
   "{lightId}": Object{
     "state": Object{...},
+    "swupdate": Object{
+      "state": String,
+      "lastinstall": String (ISO 8601)
+    },
     "type": String,
-    "name": String,
+    "name": String,              // 日本語名もサポート
     "modelid": String,
     "manufacturername": String,
     "productname": String,
     "capabilities": Object{...},
-    "config": Object{...},
-    "swversion": String
+    "config": Object{
+      "archetype": String,
+      "function": String,
+      "direction": String,
+      "startup": Object{         // 追加フィールド
+        "mode": String,
+        "configured": Boolean
+      }
+    },
+    "uniqueid": String,          // 新発見フィールド
+    "swversion": String,
+    "swconfigid": String,        // 新発見フィールド
+    "productid": String          // 新発見フィールド
   }
 }
 ```
@@ -202,6 +217,16 @@ Object{
 - 全てのレスポンスが配列形式 `[{...}]`
 - 成功時は `"success"` キー
 - エラー時は `"error"` キー
+
+### 実証済み知見（2025-07-27テスト）
+- **日本語ライト名**: UTF-8で正常にサポートされる
+- **追加フィールド**: APIドキュメントに記載のない追加フィールドが存在
+  - `swupdate`: ソフトウェアアップデート情報
+  - `uniqueid`: デバイス固有ID
+  - `swconfigid`, `productid`: 製品管理ID
+  - `config.startup`: 起動時設定
+- **カラーガマット**: 実際のデバイスはタイプ"C"（理論値"B"と異なる）
+- **デバイス多様性**: Signe gradient table等の特殊デバイスも正常動作
 
 ## 🚨 トラブルシューティング
 
@@ -252,6 +277,108 @@ YYYY-MM-DD HH:MM:SS
 - コードとの整合性: ✅/❌
 - 発見した問題点: 記述
 ```
+
+## 🧪 実際のテスト結果 (2025-07-27実行)
+
+### テスト実行日時
+2025-07-27 19:00:00
+
+### Phase 1結果: 基本接続テスト ✅
+```json
+[{"error":{"type":4,"address":"/","description":"method, GET, not available for resource, /"}}]
+```
+**結果**: 期待通りのエラーレスポンス。Bridgeとの接続は正常。
+
+### Phase 2結果: 認証フローテスト ✅
+
+#### ボタン押下前
+```json
+[
+  {
+    "error": {
+      "type": 101,
+      "address": "",
+      "description": "link button not pressed"
+    }
+  }
+]
+```
+
+#### ボタン押下後（認証成功）
+```json
+[{"success":{"username":"tcQ3Sv9KwZnCvNApXKNYJdFNBTPTEn4fGPdjhuiZ"}}]
+```
+**結果**: 40文字のusernameが正常に取得できた。
+
+### Phase 3結果: 認証後APIテスト ✅
+
+#### ライト一覧取得
+```json
+{
+  "1": {
+    "state": {
+      "on": false,
+      "bri": 254,
+      "hue": 8401,
+      "sat": 142,
+      "effect": "none",
+      "xy": [0.459, 0.4103],
+      "ct": 369,
+      "alert": "select",
+      "colormode": "ct",
+      "mode": "homeautomation",
+      "reachable": true
+    },
+    "swupdate": { "state": "noupdates", "lastinstall": "2025-07-16T18:17:54" },
+    "type": "Extended color light",
+    "name": "テーブルランプ",
+    "modelid": "929003555601",
+    "manufacturername": "Signify Netherlands B.V.",
+    "productname": "Signe gradient table",
+    "capabilities": {
+      "certified": true,
+      "control": {
+        "mindimlevel": 10,
+        "maxlumen": 700,
+        "colorgamuttype": "C",
+        "colorgamut": [
+          [0.6915, 0.3083],
+          [0.17, 0.7],
+          [0.1532, 0.0475]
+        ],
+        "ct": { "min": 153, "max": 500 }
+      },
+      "streaming": { "renderer": true, "proxy": true }
+    },
+    "config": {
+      "archetype": "huesigne",
+      "function": "decorative",
+      "direction": "horizontal",
+      "startup": { "mode": "safety", "configured": true }
+    },
+    "uniqueid": "00:17:88:01:0c:53:de:b4-0b",
+    "swversion": "1.122.8",
+    "swconfigid": "2E841ADB",
+    "productid": "4422-9482-0441_HG01_PSU22"
+  }
+}
+```
+
+#### シーン作成テスト
+```json
+[{ "success": { "id": "5By1Sk30AxAeffr" } }]
+```
+
+### 分析結果 ✅
+- **エラーレスポンス構造の確認**: ✅ 期待通りの構造
+- **成功レスポンス構造の確認**: ✅ 配列形式でsuccess/errorキーを含む
+- **コードとの整合性**: ✅ Rustコードで想定している構造と一致
+- **発見した新事項**:
+  - 日本語ライト名「テーブルランプ」をサポート
+  - Signe gradient tableモデル（予想と異なるデバイス）
+  - 追加フィールド: `swupdate`, `uniqueid`, `swconfigid`, `productid`
+  - `config.startup`フィールドの存在
+  - 実際のcolorgamuttypeは"C"（理論値"B"と異なる）
 
 ---
 
