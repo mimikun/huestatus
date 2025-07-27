@@ -517,6 +517,19 @@ impl Light {
     pub fn is_suitable_for_status(&self) -> bool {
         self.is_reachable() && (self.supports_color() || self.supports_color_temperature())
     }
+
+    /// Check if the light supports a specific effect
+    pub fn supports_effect(&self, effect: &str) -> bool {
+        if let Some(_capabilities) = &self.capabilities {
+            match effect {
+                "colorloop" => self.supports_color(),
+                "none" => true,
+                _ => false,
+            }
+        } else {
+            false
+        }
+    }
 }
 
 impl Scene {
