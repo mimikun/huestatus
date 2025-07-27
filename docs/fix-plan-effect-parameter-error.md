@@ -114,10 +114,10 @@ cargo build
 - [x] Task 6: 詳細な修正計画を作成する
 
 ### 未完了タスク
-- [ ] Task 7: create_breathing_scene関数でのeffect設定を修正する
-- [ ] Task 8: ライトの機能チェック機能を追加する
-- [ ] Task 9: コードのリントとフォーマットを実行する
-- [ ] Task 10: 修正をテストする
+- [x] Task 7: create_breathing_scene関数でのeffect設定を修正する
+- [x] Task 8: ライトの機能チェック機能を追加する
+- [x] Task 9: コードのリントとフォーマットを実行する
+- [x] Task 10: 修正をテストする
 
 ## 🚀 期待される結果
 
