@@ -81,12 +81,11 @@ impl BridgeAuth {
 
     /// Authenticate with the bridge using link button
     pub async fn authenticate(&self, app_name: &str, instance_name: &str) -> Result<AuthResult> {
-        let device_type = format!("{}#{}", app_name, instance_name);
+        let device_type = format!("{app_name}#{instance_name}");
 
         if self.verbose {
             eprintln!(
-                "🔑 Starting authentication with device type: {}",
-                device_type
+                "🔑 Starting authentication with device type: {device_type}"
             );
             eprintln!("👆 Press the link button on your Hue bridge now!");
         }
@@ -115,7 +114,7 @@ impl BridgeAuth {
             match self.try_authenticate(&device_type).await {
                 Ok(username) => {
                     if self.verbose {
-                        eprintln!("✅ Authentication successful! Username: {}", username);
+                        eprintln!("✅ Authentication successful! Username: {username}");
                     }
 
                     return Ok(AuthResult {
@@ -132,15 +131,14 @@ impl BridgeAuth {
                             .as_secs()
                             .saturating_sub(start_time.elapsed().as_secs());
                         eprintln!(
-                            "⏳ Waiting for button press... ({} seconds remaining)",
-                            remaining
+                            "⏳ Waiting for button press... ({remaining} seconds remaining)"
                         );
                     }
                     continue;
                 }
                 Err(e) => {
                     if self.verbose {
-                        eprintln!("❌ Authentication error: {}", e);
+                        eprintln!("❌ Authentication error: {e}");
                     }
                     return Err(e);
                 }
@@ -156,7 +154,7 @@ impl BridgeAuth {
         };
 
         if self.verbose {
-            eprintln!("📡 POST {} with devicetype: {}", url, device_type);
+            eprintln!("📡 POST {url} with devicetype: {device_type}");
         }
 
         let response = timeout(
@@ -175,7 +173,7 @@ impl BridgeAuth {
             .map_err(|e| HueStatusError::NetworkError { source: e })?;
 
         if self.verbose {
-            eprintln!("📥 Response: {}", response_text);
+            eprintln!("📥 Response: {response_text}");
         }
 
         // Parse response as array
@@ -220,14 +218,13 @@ impl BridgeAuth {
     where
         F: Fn(AuthStatus) + Send + Sync,
     {
-        let device_type = format!("{}#{}", app_name, instance_name);
+        let device_type = format!("{app_name}#{instance_name}");
 
         callback(AuthStatus::WaitingForButton);
 
         if self.verbose {
             eprintln!(
-                "🔑 Starting authentication with device type: {}",
-                device_type
+                "🔑 Starting authentication with device type: {device_type}"
             );
         }
 
@@ -272,7 +269,7 @@ impl BridgeAuth {
     /// Test if authentication credentials are valid
     pub async fn test_authentication(&self, username: &str) -> Result<()> {
         if self.verbose {
-            eprintln!("🔍 Testing authentication for user: {}", username);
+            eprintln!("🔍 Testing authentication for user: {username}");
         }
 
         let url = format!("http://{}/api/{}/config", self.bridge_ip, username);
@@ -371,7 +368,7 @@ impl BridgeAuth {
                     println!("\n⏰ Authentication timed out");
                 }
                 AuthStatus::Error(err) => {
-                    println!("\n❌ Authentication failed: {}", err);
+                    println!("\n❌ Authentication failed: {err}");
                 }
                 _ => {}
             })
@@ -391,7 +388,7 @@ impl BridgeAuth {
         app_name: &str,
         instance_name: &str,
     ) -> Result<AuthResult> {
-        let device_type = format!("{}#{}", app_name, instance_name);
+        let device_type = format!("{app_name}#{instance_name}");
 
         match self.try_authenticate(&device_type).await {
             Ok(username) => Ok(AuthResult {
@@ -475,9 +472,9 @@ impl std::fmt::Display for AuthStatus {
         match self {
             AuthStatus::WaitingForButton => write!(f, "Waiting for button press"),
             AuthStatus::ButtonPressed => write!(f, "Button pressed"),
-            AuthStatus::Success(username) => write!(f, "Success ({})", username),
+            AuthStatus::Success(username) => write!(f, "Success ({username})"),
             AuthStatus::Timeout => write!(f, "Timeout"),
-            AuthStatus::Error(err) => write!(f, "Error: {}", err),
+            AuthStatus::Error(err) => write!(f, "Error: {err}"),
         }
     }
 }

@@ -204,7 +204,7 @@ impl SceneExecutor {
             }),
             Err(e) => {
                 if self.verbose {
-                    eprintln!("❌ Scene execution failed: {}", e);
+                    eprintln!("❌ Scene execution failed: {e}");
                 }
                 Err(e)
             }
@@ -304,7 +304,7 @@ impl SceneExecutor {
         timeout(execution_timeout, self.client.execute_scene(scene_id))
             .await
             .map_err(|_| HueStatusError::TimeoutError {
-                operation: format!("Scene execution for {}", scene_id),
+                operation: format!("Scene execution for {scene_id}"),
             })?
             .map_err(|e| HueStatusError::SceneExecutionFailed {
                 reason: e.to_string(),
@@ -316,7 +316,7 @@ impl SceneExecutor {
     /// Execute scene with fade effect (simulated)
     async fn execute_with_fade(&self, scene_id: &str, duration_ms: u64) -> Result<()> {
         if self.verbose {
-            eprintln!("🌅 Executing scene with fade effect ({}ms)", duration_ms);
+            eprintln!("🌅 Executing scene with fade effect ({duration_ms}ms)");
         }
 
         // For now, just execute immediately
@@ -411,8 +411,7 @@ impl SceneExecutor {
 
         if self.verbose {
             eprintln!(
-                "🎬 Executing scene with rollback: {} -> {}",
-                scene_id, rollback_scene_id
+                "🎬 Executing scene with rollback: {scene_id} -> {rollback_scene_id}"
             );
         }
 
@@ -445,7 +444,7 @@ impl SceneExecutor {
                     }
                     Err(rollback_error) => {
                         if self.verbose {
-                            eprintln!("❌ Rollback failed: {}", rollback_error);
+                            eprintln!("❌ Rollback failed: {rollback_error}");
                         }
                     }
                 }
@@ -458,7 +457,7 @@ impl SceneExecutor {
     /// Test scene execution without actually executing
     pub async fn test_execution(&self, scene_id: &str) -> Result<SceneValidationResult> {
         if self.verbose {
-            eprintln!("🧪 Testing scene execution: {}", scene_id);
+            eprintln!("🧪 Testing scene execution: {scene_id}");
         }
 
         let mut issues = Vec::new();
@@ -507,7 +506,7 @@ impl SceneExecutor {
 
                 lights_status.push(light_status);
             } else {
-                issues.push(format!("Light '{}' not found", light_id));
+                issues.push(format!("Light '{light_id}' not found"));
                 is_valid = false;
             }
         }

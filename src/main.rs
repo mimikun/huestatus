@@ -15,7 +15,7 @@ use std::process;
 async fn main() {
     // Set up panic handler for better error reporting
     std::panic::set_hook(Box::new(|panic_info| {
-        eprintln!("💥 Internal error: {}", panic_info);
+        eprintln!("💥 Internal error: {panic_info}");
         eprintln!("Please report this issue at: https://github.com/mimikun/huestatus/issues");
         process::exit(1);
     }));
@@ -92,7 +92,7 @@ async fn main() {
 
                 if verbose {
                     eprintln!("\nDebug information:");
-                    eprintln!("Error type: {:?}", e);
+                    eprintln!("Error type: {e:?}");
                     eprintln!("Exit code: {}", e.exit_code());
                 }
 
@@ -229,7 +229,7 @@ async fn execute_status_command(
     let effective_quiet = quiet || config.effective_quiet();
 
     if effective_verbose && !effective_quiet {
-        eprintln!("🔍 Executing {} status...", status_type);
+        eprintln!("🔍 Executing {status_type} status...");
         eprintln!("📍 Bridge: {}", config.bridge.ip);
     }
 
@@ -321,7 +321,7 @@ async fn execute_validate_command(verbose: bool) -> Result<()> {
             if verbose {
                 println!("❌ Scene '{}' has issues:", result.scene_name);
                 for issue in &result.issues {
-                    println!("  • {}", issue);
+                    println!("  • {issue}");
                 }
             }
         } else if verbose {
@@ -335,7 +335,7 @@ async fn execute_validate_command(verbose: bool) -> Result<()> {
         }
     } else {
         return Err(HueStatusError::ValidationFailed {
-            reason: format!("Found {} validation issues", total_issues),
+            reason: format!("Found {total_issues} validation issues"),
         });
     }
 

@@ -151,7 +151,7 @@ impl HueStatusError {
                 "No configuration found. Run 'huestatus --setup' to get started.".to_string()
             }
             HueStatusError::InvalidConfig { reason } => {
-                format!("Configuration invalid: {}. Run 'huestatus --setup' to fix.", reason)
+                format!("Configuration invalid: {reason}. Run 'huestatus --setup' to fix.")
             }
             HueStatusError::ConfigCorrupted => {
                 "Configuration file is corrupted. Run 'huestatus --setup' to recreate.".to_string()
@@ -163,7 +163,7 @@ impl HueStatusError {
                 "Hue bridge not found. Check that your bridge is connected and on the same network.".to_string()
             }
             HueStatusError::BridgeConnectionFailed { reason } => {
-                format!("Cannot connect to bridge: {}. Check network connection.", reason)
+                format!("Cannot connect to bridge: {reason}. Check network connection.")
             }
             HueStatusError::AuthenticationFailed => {
                 "Authentication failed. Run 'huestatus --setup' to re-authenticate.".to_string()
@@ -172,46 +172,46 @@ impl HueStatusError {
                 "Link button not pressed. Press the button on your Hue bridge and try again.".to_string()
             }
             HueStatusError::SceneNotFound { scene_name } => {
-                format!("Scene '{}' not found. Run 'huestatus --setup' to recreate scenes.", scene_name)
+                format!("Scene '{scene_name}' not found. Run 'huestatus --setup' to recreate scenes.")
             }
             HueStatusError::SceneExecutionFailed { reason } => {
-                format!("Scene execution failed: {}. Check bridge connection.", reason)
+                format!("Scene execution failed: {reason}. Check bridge connection.")
             }
             HueStatusError::NoLightsFound => {
                 "No lights found. Ensure your Hue bridge has lights connected and they are turned on.".to_string()
             }
             HueStatusError::SceneStorageLimitExceeded { max_scenes } => {
-                format!("Bridge scene storage full (max: {}). Delete some scenes and try again.", max_scenes)
+                format!("Bridge scene storage full (max: {max_scenes}). Delete some scenes and try again.")
             }
             HueStatusError::TimeoutError { operation } => {
-                format!("Operation timed out: {}. Check network connection and try again.", operation)
+                format!("Operation timed out: {operation}. Check network connection and try again.")
             }
             HueStatusError::PermissionDenied { reason } => {
-                format!("Permission denied: {}. Check file permissions.", reason)
+                format!("Permission denied: {reason}. Check file permissions.")
             }
             HueStatusError::DiscoveryServiceUnreachable { reason } => {
-                format!("Cannot reach Philips discovery service: {}. Check internet connection.", reason)
+                format!("Cannot reach Philips discovery service: {reason}. Check internet connection.")
             }
             HueStatusError::MdnsDiscoveryFailed { reason } => {
-                format!("mDNS discovery failed: {}. Try manual bridge IP entry.", reason)
+                format!("mDNS discovery failed: {reason}. Try manual bridge IP entry.")
             }
             HueStatusError::SetupFailed { reason } => {
-                format!("Setup failed: {}. Please try again.", reason)
+                format!("Setup failed: {reason}. Please try again.")
             }
             HueStatusError::ValidationFailed { reason } => {
-                format!("Validation failed: {}. Run 'huestatus --setup' to fix.", reason)
+                format!("Validation failed: {reason}. Run 'huestatus --setup' to fix.")
             }
             HueStatusError::UnsupportedPlatform { platform } => {
-                format!("Platform '{}' is not supported.", platform)
+                format!("Platform '{platform}' is not supported.")
             }
             HueStatusError::EnvironmentVariableError { var_name } => {
-                format!("Environment variable '{}' is invalid or missing.", var_name)
+                format!("Environment variable '{var_name}' is invalid or missing.")
             }
             HueStatusError::PathTooLong { path } => {
-                format!("Configuration path is too long: {}. Try using a shorter path or set HUESTATUS_CONFIG_DIR environment variable.", path)
+                format!("Configuration path is too long: {path}. Try using a shorter path or set HUESTATUS_CONFIG_DIR environment variable.")
             }
             HueStatusError::CapacityOverflow { operation } => {
-                format!("Memory capacity overflow during {}. This may be caused by extremely long file paths in WSL environment.", operation)
+                format!("Memory capacity overflow during {operation}. This may be caused by extremely long file paths in WSL environment.")
             }
             _ => self.to_string(),
         }

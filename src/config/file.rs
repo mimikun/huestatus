@@ -25,7 +25,7 @@ pub fn load_config(path: &Path) -> Result<Config> {
             HueStatusError::ConfigCorrupted
         } else {
             HueStatusError::InvalidConfig {
-                reason: format!("JSON parsing error: {}", e),
+                reason: format!("JSON parsing error: {e}"),
             }
         }
     })?;
@@ -62,7 +62,7 @@ pub fn save_config(config: &Config, path: &Path) -> Result<()> {
 
     // Serialize configuration to JSON
     let json = serde_json::to_string_pretty(config).map_err(|e| HueStatusError::InvalidConfig {
-        reason: format!("JSON serialization error: {}", e),
+        reason: format!("JSON serialization error: {e}"),
     })?;
 
     // Write to file
@@ -88,11 +88,10 @@ fn set_secure_permissions(path: &Path) -> Result<()> {
     std::fs::set_permissions(path, permissions).map_err(|e| {
         // Don't fail if we can't set permissions, just warn
         eprintln!(
-            "Warning: Could not set secure permissions on config file: {}",
-            e
+            "Warning: Could not set secure permissions on config file: {e}"
         );
         HueStatusError::PermissionDenied {
-            reason: format!("Cannot set file permissions: {}", e),
+            reason: format!("Cannot set file permissions: {e}"),
         }
     })?;
 
@@ -154,7 +153,7 @@ fn set_directory_permissions(path: &Path) -> Result<()> {
 
     let permissions = std::fs::Permissions::from_mode(0o755);
     std::fs::set_permissions(path, permissions).map_err(|e| HueStatusError::PermissionDenied {
-        reason: format!("Cannot set directory permissions: {}", e),
+        reason: format!("Cannot set directory permissions: {e}"),
     })?;
 
     Ok(())
@@ -205,7 +204,7 @@ pub fn validate_config_json(path: &Path) -> Result<()> {
             HueStatusError::ConfigCorrupted
         } else {
             HueStatusError::InvalidConfig {
-                reason: format!("JSON validation error: {}", e),
+                reason: format!("JSON validation error: {e}"),
             }
         }
     })?;

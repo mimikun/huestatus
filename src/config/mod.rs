@@ -477,7 +477,7 @@ pub fn safe_path_to_string_fallback(path_result: crate::error::Result<PathBuf>) 
     match safe_path_to_string(path_result) {
         Ok(path_str) => path_str,
         Err(crate::error::HueStatusError::PathTooLong { .. }) => {
-            format!("{}-fallback", FALLBACK_CONFIG_NAME)
+            format!("{FALLBACK_CONFIG_NAME}-fallback")
         }
         Err(_) => "unknown".to_string(),
     }

@@ -97,28 +97,28 @@ fn validate_scene_config(scene: &crate::config::SceneConfig, scene_type: &str) -
     // Validate scene ID
     if scene.id.is_empty() {
         return Err(HueStatusError::InvalidConfig {
-            reason: format!("{} scene ID is empty", scene_type),
+            reason: format!("{scene_type} scene ID is empty"),
         });
     }
 
     // Validate scene name
     if scene.name.is_empty() {
         return Err(HueStatusError::InvalidConfig {
-            reason: format!("{} scene name is empty", scene_type),
+            reason: format!("{scene_type} scene name is empty"),
         });
     }
 
     // Scene name should not contain invalid characters
     if scene.name.contains('\n') || scene.name.contains('\r') || scene.name.contains('\t') {
         return Err(HueStatusError::InvalidConfig {
-            reason: format!("{} scene name contains invalid characters", scene_type),
+            reason: format!("{scene_type} scene name contains invalid characters"),
         });
     }
 
     // Scene name should not be too long (Hue bridge limit is 32 characters)
     if scene.name.len() > 32 {
         return Err(HueStatusError::InvalidConfig {
-            reason: format!("{} scene name is too long (max 32 characters)", scene_type),
+            reason: format!("{scene_type} scene name is too long (max 32 characters)"),
         });
     }
 
@@ -225,7 +225,7 @@ fn validate_advanced_settings(config: &Config) -> Result<()> {
 /// Validate IP address format
 pub fn validate_ip_address(ip: &str) -> Result<()> {
     IpAddr::from_str(ip).map_err(|_| HueStatusError::InvalidConfig {
-        reason: format!("Invalid IP address: {}", ip),
+        reason: format!("Invalid IP address: {ip}"),
     })?;
 
     Ok(())

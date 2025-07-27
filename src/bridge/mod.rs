@@ -682,7 +682,7 @@ impl CreateSceneRequest {
         for light_id in &self.lights {
             if !self.lightstates.contains_key(light_id) {
                 return Err(HueStatusError::InvalidSceneData {
-                    reason: format!("Light {} has no corresponding light state", light_id),
+                    reason: format!("Light {light_id} has no corresponding light state"),
                 });
             }
         }

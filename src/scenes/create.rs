@@ -262,7 +262,7 @@ impl LightSelectionCriteria {
         }
 
         if let Some(min_brightness) = self.min_brightness_support {
-            parts.push(format!("min brightness: {}", min_brightness));
+            parts.push(format!("min brightness: {min_brightness}"));
         }
 
         if parts.is_empty() {
@@ -354,7 +354,7 @@ impl SceneCreator {
         }
 
         if self.verbose {
-            eprintln!("✅ Scene created successfully: {}", scene_id);
+            eprintln!("✅ Scene created successfully: {scene_id}");
         }
 
         Ok(scene_id)
@@ -414,7 +414,7 @@ impl SceneCreator {
             .clone();
 
         if self.verbose {
-            eprintln!("✅ Gradient scene created: {}", scene_id);
+            eprintln!("✅ Gradient scene created: {scene_id}");
         }
 
         Ok(scene_id)
@@ -437,8 +437,7 @@ impl SceneCreator {
 
         if self.verbose {
             eprintln!(
-                "💨 Creating breathing scene with brightness range {}-{}",
-                min_brightness, max_brightness
+                "💨 Creating breathing scene with brightness range {min_brightness}-{max_brightness}"
             );
         }
 
@@ -472,7 +471,7 @@ impl SceneCreator {
             .clone();
 
         if self.verbose {
-            eprintln!("✅ Breathing scene created: {}", scene_id);
+            eprintln!("✅ Breathing scene created: {scene_id}");
         }
 
         Ok(scene_id)
@@ -503,7 +502,7 @@ impl SceneCreator {
             if self.verbose {
                 eprintln!("❌ Light validation failed:");
                 for issue in &issues {
-                    eprintln!("  - {}", issue);
+                    eprintln!("  - {issue}");
                 }
             }
 
@@ -522,7 +521,7 @@ impl SceneCreator {
     /// Test scene execution
     async fn test_scene_execution(&self, scene_id: &str) -> Result<()> {
         if self.verbose {
-            eprintln!("🧪 Testing scene execution: {}", scene_id);
+            eprintln!("🧪 Testing scene execution: {scene_id}");
         }
 
         // Get scene info to verify it exists
@@ -549,7 +548,7 @@ impl SceneCreator {
         modifications: Option<HashMap<String, LightState>>,
     ) -> Result<String> {
         if self.verbose {
-            eprintln!("📋 Cloning scene: {} -> {}", source_scene_id, new_name);
+            eprintln!("📋 Cloning scene: {source_scene_id} -> {new_name}");
         }
 
         // Get source scene
@@ -584,7 +583,7 @@ impl SceneCreator {
             .clone();
 
         if self.verbose {
-            eprintln!("✅ Scene cloned successfully: {}", scene_id);
+            eprintln!("✅ Scene cloned successfully: {scene_id}");
         }
 
         Ok(scene_id)

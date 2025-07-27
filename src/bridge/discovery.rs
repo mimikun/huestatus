@@ -133,7 +133,7 @@ impl BridgeDiscovery {
                 .json()
                 .await
                 .map_err(|e| HueStatusError::DiscoveryServiceUnreachable {
-                    reason: format!("Invalid JSON response: {}", e),
+                    reason: format!("Invalid JSON response: {e}"),
                 })?;
 
         if self.verbose {
@@ -177,7 +177,7 @@ impl BridgeDiscovery {
         let discovered = tokio::task::spawn_blocking(Self::mdns_discovery_blocking)
             .await
             .map_err(|e| HueStatusError::MdnsDiscoveryFailed {
-                reason: format!("Task join error: {}", e),
+                reason: format!("Task join error: {e}"),
             })?;
 
         let mut bridges = Vec::new();
@@ -232,7 +232,7 @@ impl BridgeDiscovery {
 
         for range in network_ranges {
             if self.verbose {
-                eprintln!("📡 Scanning network range: {}", range);
+                eprintln!("📡 Scanning network range: {range}");
             }
 
             let range_bridges = self.scan_network_range(&range).await?;
@@ -307,7 +307,7 @@ impl BridgeDiscovery {
 
         // Scan IPs 1-254 in the network range
         for i in 1..=254 {
-            let ip = format!("{}.{}", network, i);
+            let ip = format!("{network}.{i}");
             let client = self.client.clone();
             let timeout = self.timeout;
             let ip_clone = ip.clone();
@@ -336,7 +336,7 @@ impl BridgeDiscovery {
         ip: &str,
         request_timeout: Duration,
     ) -> Result<Option<DiscoveredBridge>> {
-        let url = format!("http://{}/api/0/config", ip);
+        let url = format!("http://{ip}/api/0/config");
 
         if let Ok(Ok(response)) = timeout(request_timeout, client.get(&url).send()).await {
             if response.status().is_success() {
@@ -374,12 +374,12 @@ impl BridgeDiscovery {
         ip: &str,
         known_id: Option<String>,
     ) -> Result<DiscoveredBridge> {
-        let url = format!("http://{}/api/0/config", ip);
+        let url = format!("http://{ip}/api/0/config");
 
         let response = timeout(self.timeout, self.client.get(&url).send())
             .await
             .map_err(|_| HueStatusError::TimeoutError {
-                operation: format!("Bridge info query for {}", ip),
+                operation: format!("Bridge info query for {ip}"),
             })?
             .map_err(|e| HueStatusError::NetworkError { source: e })?;
 
@@ -421,19 +421,19 @@ impl BridgeDiscovery {
     /// Create a manual discovery result for a specific IP
     pub async fn discover_manual(&self, ip: &str) -> Result<DiscoveryResult> {
         if self.verbose {
-            eprintln!("🔍 Testing manual IP: {}", ip);
+            eprintln!("🔍 Testing manual IP: {ip}");
         }
 
         // Validate IP format
         IpAddr::from_str(ip).map_err(|_| HueStatusError::InvalidConfig {
-            reason: format!("Invalid IP address: {}", ip),
+            reason: format!("Invalid IP address: {ip}"),
         })?;
 
         // Test if there's a bridge at this IP
         match self.enrich_bridge_info(ip, None).await {
             Ok(bridge) => {
                 if self.verbose {
-                    eprintln!("✅ Bridge found at {}", ip);
+                    eprintln!("✅ Bridge found at {ip}");
                 }
 
                 Ok(DiscoveryResult {
@@ -443,7 +443,7 @@ impl BridgeDiscovery {
             }
             Err(_) => {
                 if self.verbose {
-                    eprintln!("❌ No bridge found at {}", ip);
+                    eprintln!("❌ No bridge found at {ip}");
                 }
 
                 Err(HueStatusError::BridgeNotFound)
@@ -476,7 +476,7 @@ impl BridgeDiscovery {
                 .json()
                 .await
                 .map_err(|e| HueStatusError::BridgeConnectionFailed {
-                    reason: format!("Invalid response: {}", e),
+                    reason: format!("Invalid response: {e}"),
                 })?;
 
         // Verify it's actually a Hue bridge
@@ -530,19 +530,19 @@ impl DiscoveredBridge {
         let mut parts = vec![format!("IP: {}", self.ip)];
 
         if let Some(id) = &self.id {
-            parts.push(format!("ID: {}", id));
+            parts.push(format!("ID: {id}"));
         }
 
         if let Some(name) = &self.name {
-            parts.push(format!("Name: {}", name));
+            parts.push(format!("Name: {name}"));
         }
 
         if let Some(model) = &self.model {
-            parts.push(format!("Model: {}", model));
+            parts.push(format!("Model: {model}"));
         }
 
         if let Some(version) = &self.version {
-            parts.push(format!("API: {}", version));
+            parts.push(format!("API: {version}"));
         }
 
         parts.join(", ")

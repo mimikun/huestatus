@@ -22,7 +22,7 @@ impl InteractiveSetup {
         println!("  • Name: {}", bridge.name.as_deref().unwrap_or("Unknown"));
         println!("  • IP: {}", bridge.ip);
         if let Some(model) = &bridge.model {
-            println!("  • Model: {}", model);
+            println!("  • Model: {model}");
         }
         println!();
 
@@ -81,7 +81,7 @@ impl InteractiveSetup {
         println!("{}", style("Authentication Required").bold().cyan());
         println!("━━━━━━━━━━━━━━━━━━━━━━━━━");
         println!();
-        println!("To connect to your Hue bridge at {}:", bridge_ip);
+        println!("To connect to your Hue bridge at {bridge_ip}:");
         println!("1. Press the large round button on top of your bridge");
         println!("2. The button will start blinking");
         println!("3. Press Enter within 30 seconds");

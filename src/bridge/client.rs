@@ -103,13 +103,13 @@ impl BridgeClient {
 
         self.request_with_retry(|| async {
             if self.verbose {
-                eprintln!("🔍 GET {}", url);
+                eprintln!("🔍 GET {url}");
             }
 
             let response = timeout(self.timeout, self.client.get(&url).send())
                 .await
                 .map_err(|_| HueStatusError::TimeoutError {
-                    operation: format!("GET {}", url),
+                    operation: format!("GET {url}"),
                 })?
                 .map_err(|e| HueStatusError::NetworkError { source: e })?;
 
@@ -145,16 +145,16 @@ impl BridgeClient {
 
         self.request_with_retry(|| async {
             if self.verbose {
-                eprintln!("🔍 POST {}", url);
+                eprintln!("🔍 POST {url}");
                 if let Ok(json) = serde_json::to_string_pretty(body) {
-                    eprintln!("📤 Body: {}", json);
+                    eprintln!("📤 Body: {json}");
                 }
             }
 
             let response = timeout(self.timeout, self.client.post(&url).json(body).send())
                 .await
                 .map_err(|_| HueStatusError::TimeoutError {
-                    operation: format!("POST {}", url),
+                    operation: format!("POST {url}"),
                 })?
                 .map_err(|e| HueStatusError::NetworkError { source: e })?;
 
@@ -190,16 +190,16 @@ impl BridgeClient {
 
         self.request_with_retry(|| async {
             if self.verbose {
-                eprintln!("🔍 PUT {}", url);
+                eprintln!("🔍 PUT {url}");
                 if let Ok(json) = serde_json::to_string_pretty(body) {
-                    eprintln!("📤 Body: {}", json);
+                    eprintln!("📤 Body: {json}");
                 }
             }
 
             let response = timeout(self.timeout, self.client.put(&url).json(body).send())
                 .await
                 .map_err(|_| HueStatusError::TimeoutError {
-                    operation: format!("PUT {}", url),
+                    operation: format!("PUT {url}"),
                 })?
                 .map_err(|e| HueStatusError::NetworkError { source: e })?;
 
@@ -235,13 +235,13 @@ impl BridgeClient {
 
         self.request_with_retry(|| async {
             if self.verbose {
-                eprintln!("🔍 DELETE {}", url);
+                eprintln!("🔍 DELETE {url}");
             }
 
             let response = timeout(self.timeout, self.client.delete(&url).send())
                 .await
                 .map_err(|_| HueStatusError::TimeoutError {
-                    operation: format!("DELETE {}", url),
+                    operation: format!("DELETE {url}"),
                 })?
                 .map_err(|e| HueStatusError::NetworkError { source: e })?;
 
@@ -341,7 +341,7 @@ impl BridgeClient {
 
     /// Get specific light
     pub async fn get_light(&self, light_id: &str) -> Result<Light> {
-        self.get(&format!("lights/{}", light_id)).await
+        self.get(&format!("lights/{light_id}")).await
     }
 
     /// Get all scenes
@@ -351,7 +351,7 @@ impl BridgeClient {
 
     /// Get specific scene
     pub async fn get_scene(&self, scene_id: &str) -> Result<Scene> {
-        self.get(&format!("scenes/{}", scene_id)).await
+        self.get(&format!("scenes/{scene_id}")).await
     }
 
     /// Create a new scene
@@ -365,7 +365,7 @@ impl BridgeClient {
 
     /// Delete a scene
     pub async fn delete_scene(&self, scene_id: &str) -> Result<Vec<DeleteResponse>> {
-        self.delete(&format!("scenes/{}", scene_id)).await
+        self.delete(&format!("scenes/{scene_id}")).await
     }
 
     /// Execute a scene on all lights (group 0)
@@ -381,7 +381,7 @@ impl BridgeClient {
         scene_id: &str,
     ) -> Result<Vec<ActionResponse>> {
         let action = SceneActionRequest::new(scene_id.to_string());
-        self.put(&format!("groups/{}/action", group_id), &action)
+        self.put(&format!("groups/{group_id}/action"), &action)
             .await
     }
 
@@ -392,7 +392,7 @@ impl BridgeClient {
 
     /// Get specific group
     pub async fn get_group(&self, group_id: &str) -> Result<Group> {
-        self.get(&format!("groups/{}", group_id)).await
+        self.get(&format!("groups/{group_id}")).await
     }
 
     /// Get reachable lights suitable for status indication

@@ -190,7 +190,7 @@ impl SetupProcess {
         self.update_progress(&status);
 
         config.save().map_err(|e| HueStatusError::SetupFailed {
-            reason: format!("Failed to save configuration: {}", e),
+            reason: format!("Failed to save configuration: {e}"),
         })?;
 
         status.completed_steps += 1;
@@ -252,7 +252,7 @@ impl SetupProcess {
         );
 
         if self.verbose {
-            println!("   [{}{}] {:.0}%", progress_bar, empty_bar, progress);
+            println!("   [{progress_bar}{empty_bar}] {progress:.0}%");
         }
 
         println!();
@@ -312,7 +312,7 @@ impl SetupProcess {
             }
             Err(e) => {
                 if self.verbose {
-                    println!("  • Automatic discovery failed: {}", e);
+                    println!("  • Automatic discovery failed: {e}");
                 }
             }
         }
@@ -326,7 +326,7 @@ impl SetupProcess {
         &self,
         discovery: &BridgeDiscovery,
     ) -> Result<DiscoveredBridge> {
-        println!("{} Automatic bridge discovery failed.", "⚠️");
+        println!("⚠️ Automatic bridge discovery failed.");
         println!("Please enter your Hue bridge IP address manually.");
         println!();
 
@@ -348,12 +348,12 @@ impl SetupProcess {
             match discovery.discover_manual(ip).await {
                 Ok(result) => {
                     if let Some(bridge) = result.first_bridge() {
-                        println!("{}Bridge found at {}", "✅", ip);
+                        println!("✅Bridge found at {ip}");
                         return Ok(bridge.clone());
                     }
                 }
                 Err(_) => {
-                    println!("{}No Hue bridge found at {}. Please try again.", "❌", ip);
+                    println!("❌No Hue bridge found at {ip}. Please try again.");
                     continue;
                 }
             }
@@ -374,7 +374,7 @@ impl SetupProcess {
             auth.authenticate_interactive("huestatus", "cli").await
         } else {
             // Show instructions and wait for user input
-            println!("{}Press the link button on your Hue bridge now.", "🔑");
+            println!("🔑Press the link button on your Hue bridge now.");
             println!("The button is the large round button on top of the bridge.");
             println!(
                 "You have {} seconds to press it...",
@@ -388,7 +388,7 @@ impl SetupProcess {
 
     /// Show discovered lights
     fn show_discovered_lights(&self, lights: &[(String, crate::bridge::Light)]) {
-        println!("{}Found {} suitable light(s):", "💡", lights.len());
+        println!("💡Found {} suitable light(s):", lights.len());
 
         for (id, light) in lights {
             let status = if light.is_reachable() {
@@ -444,21 +444,21 @@ impl SetupProcess {
 
     /// Test scenes
     async fn test_scenes(&self, config: &Config, scene_manager: &SceneManager) -> Result<()> {
-        println!("{}Testing scene execution...", "🎨");
+        println!("🎨Testing scene execution...");
 
         // Test success scene
         if let Some(success_scene) = config.get_scene("success") {
             match scene_manager.test_scene_execution(&success_scene.id).await {
-                Ok(_) => println!("  {}Success scene test passed", "✅"),
-                Err(e) => println!("  {}Success scene test failed: {}", "⚠️", e),
+                Ok(_) => println!("  ✅Success scene test passed"),
+                Err(e) => println!("  ⚠️Success scene test failed: {e}"),
             }
         }
 
         // Test failure scene
         if let Some(failure_scene) = config.get_scene("failure") {
             match scene_manager.test_scene_execution(&failure_scene.id).await {
-                Ok(_) => println!("  {}Failure scene test passed", "✅"),
-                Err(e) => println!("  {}Failure scene test failed: {}", "⚠️", e),
+                Ok(_) => println!("  ✅Failure scene test passed"),
+                Err(e) => println!("  ⚠️Failure scene test failed: {e}"),
             }
         }
 
@@ -468,7 +468,7 @@ impl SetupProcess {
 
     /// Handle existing configuration
     async fn handle_existing_config(&self) -> Result<SetupResult> {
-        println!("{}Configuration already exists!", "⚠️");
+        println!("⚠️Configuration already exists!");
 
         if self.force {
             println!("Force flag detected, overwriting existing configuration...");
@@ -488,7 +488,7 @@ impl SetupProcess {
     /// Show success message
     fn show_success(&self, result: &SetupResult) {
         println!("{}", style("━".repeat(50)).dim());
-        println!("{}Setup completed successfully!", "✨");
+        println!("✨Setup completed successfully!");
         println!();
         println!("Configuration Summary:");
         println!("  • Bridge: {} ({})", result.bridge_name, result.bridge_ip);
@@ -499,9 +499,9 @@ impl SetupProcess {
 
         if !result.warnings.is_empty() {
             println!();
-            println!("{}Warnings:", "⚠️");
+            println!("⚠️Warnings:");
             for warning in &result.warnings {
-                println!("  • {}", warning);
+                println!("  • {warning}");
             }
         }
 
@@ -543,13 +543,13 @@ impl SetupProcess {
 
                             match client.test_connection().await {
                                 Ok(_) => println!("✅Bridge connection successful"),
-                                Err(e) => println!("❌Bridge connection failed: {}", e),
+                                Err(e) => println!("❌Bridge connection failed: {e}"),
                             }
                         }
-                        Err(e) => println!("❌Failed to create bridge client: {}", e),
+                        Err(e) => println!("❌Failed to create bridge client: {e}"),
                     }
                 }
-                Err(e) => println!("❌Failed to load configuration: {}", e),
+                Err(e) => println!("❌Failed to load configuration: {e}"),
             }
         } else {
             println!("❌No configuration found. Run 'huestatus --setup' to configure.");

@@ -25,7 +25,7 @@ impl SetupValidator {
             .with_username(config.bridge.application_key.clone());
 
         if let Err(e) = client.test_connection().await {
-            warnings.push(format!("Bridge connection issue: {}", e));
+            warnings.push(format!("Bridge connection issue: {e}"));
         }
 
         // Check lights
@@ -37,7 +37,7 @@ impl SetupValidator {
                     warnings.push("Only one suitable light found - consider adding more for better visibility".to_string());
                 }
             }
-            Err(e) => warnings.push(format!("Failed to get lights: {}", e)),
+            Err(e) => warnings.push(format!("Failed to get lights: {e}")),
         }
 
         // Validate scenes
@@ -66,7 +66,7 @@ impl SetupValidator {
                     warnings.push("Bridge has very few lights connected".to_string());
                 }
             }
-            Err(e) => warnings.push(format!("Could not check bridge capabilities: {}", e)),
+            Err(e) => warnings.push(format!("Could not check bridge capabilities: {e}")),
         }
 
         Ok(warnings)

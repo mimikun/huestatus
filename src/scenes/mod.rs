@@ -124,8 +124,7 @@ impl SceneManager {
 
         if self.verbose {
             eprintln!(
-                "✅ Created success scene: {} ({})",
-                success_scene_name, success_scene_id
+                "✅ Created success scene: {success_scene_name} ({success_scene_id})"
             );
         }
 
@@ -146,8 +145,7 @@ impl SceneManager {
 
         if self.verbose {
             eprintln!(
-                "✅ Created failure scene: {} ({})",
-                failure_scene_name, failure_scene_id
+                "✅ Created failure scene: {failure_scene_name} ({failure_scene_id})"
             );
         }
 
@@ -205,7 +203,7 @@ impl SceneManager {
 
         if self.verbose {
             if success {
-                eprintln!("✅ Scene executed successfully ({}ms)", execution_time);
+                eprintln!("✅ Scene executed successfully ({execution_time}ms)");
             } else {
                 eprintln!("❌ Scene execution failed");
             }
@@ -252,7 +250,7 @@ impl SceneManager {
         scene_name: &str,
     ) -> Result<SceneValidationResult> {
         if self.verbose {
-            eprintln!("🔍 Validating scene: {} ({})", scene_name, scene_id);
+            eprintln!("🔍 Validating scene: {scene_name} ({scene_id})");
         }
 
         let mut issues = Vec::new();
@@ -263,7 +261,7 @@ impl SceneManager {
         let scene = match self.client.get_scene(scene_id).await {
             Ok(scene) => scene,
             Err(_) => {
-                issues.push(format!("Scene '{}' not found", scene_name));
+                issues.push(format!("Scene '{scene_name}' not found"));
                 is_valid = false;
                 return Ok(SceneValidationResult {
                     scene_id: scene_id.to_string(),
@@ -305,7 +303,7 @@ impl SceneManager {
 
                 lights_status.push(light_status);
             } else {
-                issues.push(format!("Light '{}' not found", light_id));
+                issues.push(format!("Light '{light_id}' not found"));
                 is_valid = false;
             }
         }
@@ -316,7 +314,7 @@ impl SceneManager {
             } else {
                 eprintln!("❌ Scene validation failed: {} issues", issues.len());
                 for issue in &issues {
-                    eprintln!("  - {}", issue);
+                    eprintln!("  - {issue}");
                 }
             }
         }
@@ -333,7 +331,7 @@ impl SceneManager {
     /// Test scene execution without changing light states
     pub async fn test_scene_execution(&self, scene_id: &str) -> Result<bool> {
         if self.verbose {
-            eprintln!("🧪 Testing scene execution: {}", scene_id);
+            eprintln!("🧪 Testing scene execution: {scene_id}");
         }
 
         // Just check if scene exists and can be accessed
@@ -346,7 +344,7 @@ impl SceneManager {
             }
             Err(e) => {
                 if self.verbose {
-                    eprintln!("❌ Scene test failed: {}", e);
+                    eprintln!("❌ Scene test failed: {e}");
                 }
                 Err(e)
             }
@@ -375,7 +373,7 @@ impl SceneManager {
                     }
                     Err(e) => {
                         if self.verbose {
-                            eprintln!("⚠️ Failed to delete success scene: {}", e);
+                            eprintln!("⚠️ Failed to delete success scene: {e}");
                         }
                     }
                 }
@@ -393,7 +391,7 @@ impl SceneManager {
                     }
                     Err(e) => {
                         if self.verbose {
-                            eprintln!("⚠️ Failed to delete failure scene: {}", e);
+                            eprintln!("⚠️ Failed to delete failure scene: {e}");
                         }
                     }
                 }
@@ -466,7 +464,7 @@ impl SceneManager {
             .clone();
 
         if self.verbose {
-            eprintln!("✅ Created custom scene: {}", scene_id);
+            eprintln!("✅ Created custom scene: {scene_id}");
         }
 
         Ok(scene_id)
